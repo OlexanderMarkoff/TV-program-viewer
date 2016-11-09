@@ -1,4 +1,4 @@
-package example.m1.tv_program_viewer.views.fragments;
+package example.m1.tv_program_viewer.view.fragments;
 
 import android.app.Fragment;
 import android.os.Bundle;

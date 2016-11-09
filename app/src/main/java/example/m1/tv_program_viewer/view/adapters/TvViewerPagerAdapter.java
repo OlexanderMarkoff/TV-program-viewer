@@ -1,4 +1,4 @@
-package example.m1.tv_program_viewer.views.adapters;
+package example.m1.tv_program_viewer.view.adapters;
 
 import android.app.Fragment;
 import android.app.FragmentManager;
@@ -7,6 +7,8 @@ import android.support.v13.app.FragmentStatePagerAdapter;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import example.m1.tv_program_viewer.model.data.Channel;
 
 import static example.m1.tv_program_viewer.Constants.FRAGMENT_TITLE_KEY;
 
@@ -43,8 +45,9 @@ public class TvViewerPagerAdapter extends FragmentStatePagerAdapter {
     public CharSequence getPageTitle(int position) {
         Bundle bundle = pages.get(position).getArguments();
 
-        if (bundle != null && bundle.getString(FRAGMENT_TITLE_KEY) != null) {
-            return bundle.getString(FRAGMENT_TITLE_KEY);
+        if (bundle != null && bundle.getParcelable(FRAGMENT_TITLE_KEY) != null) {
+            Channel channel = bundle.getParcelable(FRAGMENT_TITLE_KEY);
+            return channel.getName();
         } else {
             //add fragment title as bundle into fragment
             return "No title";
