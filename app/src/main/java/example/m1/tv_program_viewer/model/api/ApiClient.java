@@ -1,10 +1,17 @@
 package example.m1.tv_program_viewer.model.api;
 
+import java.util.List;
+
+import example.m1.tv_program_viewer.model.data.Category;
+import example.m1.tv_program_viewer.model.data.Channel;
+import example.m1.tv_program_viewer.model.data.Program;
 import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;
+import retrofit2.Callback;
 import retrofit2.Retrofit;
-import retrofit2.adapter.rxjava.RxJavaCallAdapterFactory;
 import retrofit2.converter.gson.GsonConverterFactory;
+
+import static example.m1.tv_program_viewer.Constants.ROOT_URL;
 
 /**
  * Created by M1 on 09.11.2016.
@@ -12,34 +19,40 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class ApiClient {
 
-    private static final String ROOT_URL = "http://194.44.253.78:8090/ChanelAPI/";
+    private static final Retrofit mRestAdapter;
+    private static ApiInterface restService;
 
-    private static final boolean ENABLE_LOG = true;
 
-    private ApiClient() {
-    }
+    static {
 
-    public static ApiInterface getApiInterface() {
+        HttpLoggingInterceptor logging = new HttpLoggingInterceptor();
+        logging.setLevel(HttpLoggingInterceptor.Level.BODY);
 
-        OkHttpClient httpClient = new OkHttpClient();
+        OkHttpClient okClient = new OkHttpClient.Builder()
+                .addInterceptor(logging)
+                .build();
 
-        if (ENABLE_LOG) {
-            HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor();
-            interceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
-            httpClient.newBuilder()
-                    .addInterceptor(interceptor)
-                    .build();
-        }
-
-        Retrofit.Builder builder = new Retrofit.Builder().
-                baseUrl(ROOT_URL)
+        mRestAdapter = new Retrofit.Builder()
+                .baseUrl(ROOT_URL)
                 .addConverterFactory(GsonConverterFactory.create())
-                .addCallAdapterFactory(RxJavaCallAdapterFactory.create());
-
-        builder.client(httpClient);
-
-        ApiInterface apiInterface = builder.build().create(ApiInterface.class);
-        return apiInterface;
+                .client(okClient)
+                .build();
+        restService = mRestAdapter.create(ApiInterface.class);
     }
 
+    public static void loadChannels(Callback<List<Channel>> callback) {
+        restService.getChannels().enqueue(callback);
+    }
+
+    public static void getCategories(Callback<List<Category>> callback) {
+        restService.getCategories().enqueue(callback);
+    }
+
+    public static void getPrograms(Callback<List<Program>> callback, String timestamp) {
+        restService.getPrograms(timestamp).enqueue(callback);
+    }
+
+//    public static void loadData(Callback<List<?>> callback, String query) {
+//        restService.loadData(query).enqueue(callback);
+//    }
 }

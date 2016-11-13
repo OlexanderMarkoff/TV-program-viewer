@@ -12,7 +12,7 @@ import com.google.gson.annotations.SerializedName;
 public class Channel implements Parcelable {
 
     @SerializedName("id")
-    private int id;
+    private int channelId;
     @SerializedName("name")
     private String name;
     @SerializedName("url")
@@ -22,14 +22,14 @@ public class Channel implements Parcelable {
     @SerializedName("category_id")
     private int categoryId;
 
-    public Channel() {}
+    private boolean isFavorite;
 
-    public int getId() {
-        return id;
+    public int getChannelId() {
+        return channelId;
     }
 
-    public void setId(int id) {
-        this.id = id;
+    public void setChannelId(int channelId) {
+        this.channelId = channelId;
     }
 
     public String getName() {
@@ -64,6 +64,14 @@ public class Channel implements Parcelable {
         this.categoryId = categoryId;
     }
 
+    public boolean isFavorite() {
+        return isFavorite;
+    }
+
+    public void setFavorite(boolean favorite) {
+        isFavorite = favorite;
+    }
+
     @Override
     public int describeContents() {
         return 0;
@@ -71,15 +79,18 @@ public class Channel implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
-        dest.writeInt(this.id);
+        dest.writeInt(this.channelId);
         dest.writeString(this.name);
         dest.writeString(this.url);
         dest.writeString(this.picture);
         dest.writeInt(this.categoryId);
     }
 
+    public Channel() {
+    }
+
     protected Channel(Parcel in) {
-        this.id = in.readInt();
+        this.channelId = in.readInt();
         this.name = in.readString();
         this.url = in.readString();
         this.picture = in.readString();

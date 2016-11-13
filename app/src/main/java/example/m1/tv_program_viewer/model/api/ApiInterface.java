@@ -5,9 +5,9 @@ import java.util.List;
 import example.m1.tv_program_viewer.model.data.Category;
 import example.m1.tv_program_viewer.model.data.Channel;
 import example.m1.tv_program_viewer.model.data.Program;
+import retrofit2.Call;
 import retrofit2.http.GET;
 import retrofit2.http.Path;
-import rx.Observable;
 
 /**
  * Created by M1 on 09.11.2016.
@@ -16,11 +16,12 @@ import rx.Observable;
 public interface ApiInterface {
 
     @GET("chanels")
-    Observable<List<Channel>> getChanels();
+    Call<List<Channel>> getChannels();
 
     @GET("categories ")
-    Observable<List<Category>> getCategories();
+    Call<List<Category>> getCategories();
 
     @GET("programs/{timestamp}")
-    Observable<List<Program>> getPrograms(@Path("timestamp") String timestamp);
+    Call<List<Program>> getPrograms(@Path("timestamp") String timestamp);
+
 }

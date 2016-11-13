@@ -1,26 +1,21 @@
 package example.m1.tv_program_viewer.presenter;
 
-import java.util.List;
+import android.database.Cursor;
 
-import example.m1.tv_program_viewer.model.Model;
+import example.m1.tv_program_viewer.model.ChannelModel;
 import example.m1.tv_program_viewer.model.TvViewerModel;
-import example.m1.tv_program_viewer.model.data.Channel;
 import example.m1.tv_program_viewer.view.TvViewerView;
-import rx.Observer;
-import rx.Subscription;
-import rx.subscriptions.Subscriptions;
 
 /**
  * Created by M1 on 09.11.2016.
  */
 
-public class ChannelsPresenter implements TvViewerPresenter {
+public class ChannelsPresenter implements TvViewerPresenter, DataReadyListener {
 
 
-    private TvViewerModel model = new Model();
+    private TvViewerModel model = new ChannelModel(this);
 
     private TvViewerView view;
-    private Subscription subscription = Subscriptions.empty();
 
     public ChannelsPresenter(TvViewerView view) {
         this.view = view;
@@ -28,39 +23,16 @@ public class ChannelsPresenter implements TvViewerPresenter {
 
     @Override
     public void loadData() {
-
-        if (!subscription.isUnsubscribed()) {
-            subscription.unsubscribe();
-        }
-
-        subscription = model.getChannels()
-                .subscribe(new Observer<List<Channel>>() {
-                    @Override
-                    public void onCompleted() {
-
-                    }
-
-                    @Override
-                    public void onError(Throwable e) {
-                        view.showError(e.getMessage());
-                    }
-
-                    @Override
-                    public void onNext(List<Channel> data) {
-                        if (data != null && !data.isEmpty()) {
-                            view.showData(data);
-                        } else {
-                            view.clearData();
-                        }
-                    }
-                });
+        model.getData();
     }
 
     @Override
-    public void onStop() {
+    public void dataLoaded(Cursor data) {
+        view.showData(data);
+    }
 
-        if (!subscription.isUnsubscribed()) {
-            subscription.unsubscribe();
-        }
+    @Override
+    public void loadingError(String error) {
+        view.showError(error);
     }
 }

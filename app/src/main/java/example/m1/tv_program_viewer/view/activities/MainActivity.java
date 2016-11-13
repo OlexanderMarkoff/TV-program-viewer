@@ -1,6 +1,7 @@
 package example.m1.tv_program_viewer.view.activities;
 
 import android.app.Fragment;
+import android.database.Cursor;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.design.widget.TabLayout;
@@ -18,7 +19,10 @@ import example.m1.tv_program_viewer.view.TvViewerView;
 import example.m1.tv_program_viewer.view.adapters.TvViewerPagerAdapter;
 import example.m1.tv_program_viewer.view.fragments.TabFragment;
 
+import static android.provider.BaseColumns._ID;
+import static example.m1.tv_program_viewer.Constants.FRAGMENT_CHANNEL_ID_KEY;
 import static example.m1.tv_program_viewer.Constants.FRAGMENT_TITLE_KEY;
+import static example.m1.tv_program_viewer.model.db.ContractClass.ChannelContract.COLUMN_NAME_NAME;
 
 /**
  * Created by M1 on 09.11.2016.
@@ -53,18 +57,23 @@ public class MainActivity extends AppCompatActivity implements TvViewerView<Chan
     }
 
 
-    private void setViewPager(List<Channel> dataList) {
+    private void setViewPager(Cursor dataList) {
         final List<Fragment> pages = new ArrayList<>();
 
         Fragment fragment;
-        //FIXME: test data
-        for (Channel channel: dataList) {
-            Bundle args = new Bundle();
-            args.putParcelable(FRAGMENT_TITLE_KEY, channel);
-            fragment = new TabFragment();
-            fragment.setArguments(args);
-            pages.add(fragment);
+
+        if (dataList.moveToFirst()) {
+            while (!dataList.isAfterLast()) {
+                Bundle args = new Bundle();
+                args.putString(FRAGMENT_TITLE_KEY, dataList.getString(dataList.getColumnIndex(COLUMN_NAME_NAME)));
+                args.putString(FRAGMENT_CHANNEL_ID_KEY, dataList.getString(dataList.getColumnIndex(_ID)));
+                fragment = new TabFragment();
+                fragment.setArguments(args);
+                pages.add(fragment);
+                dataList.moveToNext();
+            }
         }
+        dataList.close();
 
         tabs.setupWithViewPager(pager);
         if (pagerAdapter == null) {
@@ -93,16 +102,7 @@ public class MainActivity extends AppCompatActivity implements TvViewerView<Chan
     }
 
     @Override
-    protected void onStop() {
-        super.onStop();
-
-        if (presenter != null) {
-            presenter.onStop();
-        }
-    }
-
-    @Override
-    public void showData(List<Channel> dataList) {
+    public void showData(Cursor dataList) {
         setViewPager(dataList);
     }
 

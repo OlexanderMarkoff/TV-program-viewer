@@ -6,5 +6,4 @@ package example.m1.tv_program_viewer.presenter;
 
 public interface TvViewerPresenter {
     void loadData();
-    void onStop();
 }
