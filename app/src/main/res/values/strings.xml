@@ -5,4 +5,13 @@
     <string name="title_btn_favorites_remove">Remove from favorites</string>
 
     <string name="title_network_error">Network isn\'t available</string>
+
+    <string name="nav_title_category">Category</string>
+    <string name="nav_title_channels_list">Channels List</string>
+    <string name="nav_title_favorites">Favorites</string>
+    <string name="nav_title_programs_list">Programs list</string>
+    <string name="nav_title_date">Date</string>
+
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
 </resources>
