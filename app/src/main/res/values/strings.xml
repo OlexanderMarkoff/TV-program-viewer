@@ -1,3 +1,8 @@
 <resources>
     <string name="app_name">TV-program-viewer</string>
+
+    <string name="title_btn_favorites_add">Add to favorites</string>
+    <string name="title_btn_favorites_remove">Remove from favorites</string>
+
+    <string name="title_network_error">Network isn\'t available</string>
 </resources>

@@ -21,7 +21,7 @@ public interface ApiInterface {
     @GET("categories ")
     Call<List<Category>> getCategories();
 
-    @GET("programs/{timestamp}")
-    Call<List<Program>> getPrograms(@Path("timestamp") String timestamp);
+    @GET("programs/{channel_id}/{timestamp}")
+    Call<List<Program>> getPrograms(@Path("channel_id") String channel_id, @Path("timestamp") String timestamp);
 
 }

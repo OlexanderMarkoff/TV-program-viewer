@@ -44,15 +44,11 @@ public class ApiClient {
         restService.getChannels().enqueue(callback);
     }
 
-    public static void getCategories(Callback<List<Category>> callback) {
+    public static void loadCategories(Callback<List<Category>> callback) {
         restService.getCategories().enqueue(callback);
     }
 
-    public static void getPrograms(Callback<List<Program>> callback, String timestamp) {
-        restService.getPrograms(timestamp).enqueue(callback);
+    public static void loadPrograms(Callback<List<Program>> callback, String channelId, String timestamp) {
+        restService.getPrograms(channelId, timestamp).enqueue(callback);
     }
-
-//    public static void loadData(Callback<List<?>> callback, String query) {
-//        restService.loadData(query).enqueue(callback);
-//    }
 }

@@ -15,11 +15,27 @@ import android.support.annotation.Nullable;
 import java.util.HashMap;
 
 import static android.provider.BaseColumns._ID;
-import static example.m1.tv_program_viewer.model.db.ContractClass.ChannelContract.COLUMN_NAME_CATEGORY_ID;
-import static example.m1.tv_program_viewer.model.db.ContractClass.ChannelContract.COLUMN_NAME_IS_FAVORITE;
-import static example.m1.tv_program_viewer.model.db.ContractClass.ChannelContract.COLUMN_NAME_NAME;
-import static example.m1.tv_program_viewer.model.db.ContractClass.ChannelContract.COLUMN_NAME_PICTURE;
-import static example.m1.tv_program_viewer.model.db.ContractClass.ChannelContract.COLUMN_NAME_URL;
+import static example.m1.tv_program_viewer.model.db.ContractClass.ChannelContract.CHANNEL_COLUMN_NAME_CATEGORY_ID;
+import static example.m1.tv_program_viewer.model.db.ContractClass.ChannelContract.CHANNEL_COLUMN_NAME_IS_FAVORITE;
+import static example.m1.tv_program_viewer.model.db.ContractClass.ChannelContract.CHANNEL_COLUMN_NAME_NAME;
+import static example.m1.tv_program_viewer.model.db.ContractClass.ChannelContract.CHANNEL_COLUMN_NAME_PICTURE;
+import static example.m1.tv_program_viewer.model.db.ContractClass.ChannelContract.CHANNEL_COLUMN_NAME_URL;
+import static example.m1.tv_program_viewer.model.db.ContractClass.ChannelContract.CHANNEL_DEFAULT_PROJECTION;
+import static example.m1.tv_program_viewer.model.db.ContractClass.ChannelContract.CHANNEL_ID_PATH_POSITION;
+import static example.m1.tv_program_viewer.model.db.ContractClass.ChannelContract.CHANNEL_TABLE_NAME;
+import static example.m1.tv_program_viewer.model.db.ContractClass.ChannelContract.DEFAULT_CHANNELS_SORT_ORDER;
+import static example.m1.tv_program_viewer.model.db.ContractClass.DATABASE_NAME;
+import static example.m1.tv_program_viewer.model.db.ContractClass.ProgramsContract.DEFAULT_PROGRAMS_SORT_ORDER;
+import static example.m1.tv_program_viewer.model.db.ContractClass.ProgramsContract.PROGRAMS_COLUMN_NAME_CHANNEL_ID;
+import static example.m1.tv_program_viewer.model.db.ContractClass.ProgramsContract.PROGRAMS_COLUMN_NAME_DATE;
+import static example.m1.tv_program_viewer.model.db.ContractClass.ProgramsContract.PROGRAMS_COLUMN_NAME_DESCRIPTION;
+import static example.m1.tv_program_viewer.model.db.ContractClass.ProgramsContract.PROGRAMS_COLUMN_NAME_TIME;
+import static example.m1.tv_program_viewer.model.db.ContractClass.ProgramsContract.PROGRAMS_COLUMN_NAME_TITLE;
+import static example.m1.tv_program_viewer.model.db.ContractClass.ProgramsContract.PROGRAMS_CONTENT_ID_URI_BASE;
+import static example.m1.tv_program_viewer.model.db.ContractClass.ProgramsContract.PROGRAMS_DEFAULT_PROJECTION;
+import static example.m1.tv_program_viewer.model.db.ContractClass.ProgramsContract.PROGRAMS_ID_PATH_POSITION;
+import static example.m1.tv_program_viewer.model.db.ContractClass.ProgramsContract.PROGRAMS_TABLE_NAME;
+import static example.m1.tv_program_viewer.model.db.ContractClass.ProgramsContract.PROGRAMS_TIMESTAMP_PATH_POSITION;
 
 /**
  * Created by M1 on 11.11.2016.
@@ -31,25 +47,37 @@ public class TvViewerContentProvider extends ContentProvider {
 
     private static final int CHANNEL = 1;
     private static final int CHANNEL_ID = 2;
-    private static final int IS_CHANNEL_FAVORITE = 3;
+    private static final int UPDATE_CHANNEL_FAVORITE = 3;
+    private static final int PROGRAM = 4;
+    private static final int PROGRAM_ID = 5;
 
     private static final UriMatcher sUriMatcher;
 
     static {
         sUriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
         sUriMatcher.addURI(ContractClass.AUTHORITY, "channel", CHANNEL);
-        sUriMatcher.addURI(ContractClass.AUTHORITY, "channel/#", CHANNEL_ID);
-        sUriMatcher.addURI(ContractClass.AUTHORITY, "channel_favorite", IS_CHANNEL_FAVORITE);
+        sUriMatcher.addURI(ContractClass.AUTHORITY, "channel/*", CHANNEL_ID);
+        sUriMatcher.addURI(ContractClass.AUTHORITY, "channel_favorite/*", UPDATE_CHANNEL_FAVORITE);
+        sUriMatcher.addURI(ContractClass.AUTHORITY, "programs", PROGRAM);
+        sUriMatcher.addURI(ContractClass.AUTHORITY, "programs/*/*", PROGRAM_ID);
     }
 
-    private static HashMap channelProjectionMap;
+    private static HashMap channelsProjectionMap;
+    private static HashMap programsProjectionMap;
 
     static {
-        channelProjectionMap = new HashMap<String, String>();
-        for (int i = 0; i < ContractClass.ChannelContract.DEFAULT_PROJECTION.length; i++) {
-            channelProjectionMap.put(
-                    ContractClass.ChannelContract.DEFAULT_PROJECTION[i],
-                    ContractClass.ChannelContract.DEFAULT_PROJECTION[i]);
+        channelsProjectionMap = new HashMap<String, String>();
+        for (int i = 0; i < CHANNEL_DEFAULT_PROJECTION.length; i++) {
+            channelsProjectionMap.put(
+                    CHANNEL_DEFAULT_PROJECTION[i],
+                    CHANNEL_DEFAULT_PROJECTION[i]);
+        }
+
+        programsProjectionMap = new HashMap<String, String>();
+        for (int i = 0; i < PROGRAMS_DEFAULT_PROJECTION.length; i++) {
+            programsProjectionMap.put(
+                    PROGRAMS_DEFAULT_PROJECTION[i],
+                    PROGRAMS_DEFAULT_PROJECTION[i]);
         }
     }
 
@@ -68,23 +96,34 @@ public class TvViewerContentProvider extends ContentProvider {
         String orderBy = null;
         switch (sUriMatcher.match(uri)) {
             case CHANNEL:
-                qb.setTables(ContractClass.ChannelContract.TABLE_NAME);
-                qb.setProjectionMap(channelProjectionMap);
+                qb.setTables(CHANNEL_TABLE_NAME);
+                qb.setProjectionMap(channelsProjectionMap);
+                orderBy = DEFAULT_CHANNELS_SORT_ORDER;
                 break;
             case CHANNEL_ID:
-                qb.setTables(ContractClass.ChannelContract.TABLE_NAME);
-                qb.setProjectionMap(channelProjectionMap);
-                qb.appendWhere(ContractClass.ChannelContract._ID + "=" + uri.getPathSegments().get(ContractClass.ChannelContract.CHANNEL_ID_PATH_POSITION));
+                qb.setTables(CHANNEL_TABLE_NAME);
+                qb.setProjectionMap(channelsProjectionMap);
+                qb.appendWhere(ContractClass.ChannelContract._ID + "=" + uri.getPathSegments().get(CHANNEL_ID_PATH_POSITION));
+                orderBy = DEFAULT_CHANNELS_SORT_ORDER;
                 break;
-            case IS_CHANNEL_FAVORITE:
-                qb.setTables(ContractClass.ChannelContract.TABLE_NAME);
-                qb.setProjectionMap(channelProjectionMap);
-                qb.appendWhere(ContractClass.ChannelContract.COLUMN_NAME_IS_FAVORITE + "= 1");
+            case PROGRAM:
+                qb.setTables(ContractClass.ProgramsContract.PROGRAMS_TABLE_NAME);
+                qb.setProjectionMap(programsProjectionMap);
+                orderBy = DEFAULT_PROGRAMS_SORT_ORDER;
                 break;
+
+            case PROGRAM_ID:
+                qb.setTables(ContractClass.ProgramsContract.PROGRAMS_TABLE_NAME);
+                qb.setProjectionMap(programsProjectionMap);
+                qb.appendWhere(PROGRAMS_COLUMN_NAME_CHANNEL_ID + "=" + uri.getPathSegments().get(PROGRAMS_ID_PATH_POSITION) + " OR ");
+                qb.appendWhere(PROGRAMS_COLUMN_NAME_DATE + "=" + uri.getPathSegments().get(PROGRAMS_TIMESTAMP_PATH_POSITION));
+                orderBy = DEFAULT_PROGRAMS_SORT_ORDER;
+                break;
+
             default:
                 throw new IllegalArgumentException("Unknown URI " + uri);
         }
-        orderBy = ContractClass.ChannelContract.DEFAULT_SORT_ORDER;
+
         SQLiteDatabase db = dbHelper.getReadableDatabase();
         Cursor cursor = qb.query(db, projection, selection, selectionArgs, null, null, orderBy);
         cursor.setNotificationUri(getContext().getContentResolver(), uri);
@@ -97,11 +136,15 @@ public class TvViewerContentProvider extends ContentProvider {
 
         switch (sUriMatcher.match(uri)) {
             case CHANNEL:
-                return ContractClass.ChannelContract.CONTENT_TYPE;
+                return ContractClass.ChannelContract.CHANNEL_CONTENT_TYPE;
             case CHANNEL_ID:
-                return ContractClass.ChannelContract.CONTENT_ITEM_TYPE;
-            case IS_CHANNEL_FAVORITE:
-                return ContractClass.ChannelContract.CONTENT_ITEM_TYPE;
+                return ContractClass.ChannelContract.CHANNEL_CONTENT_ITEM_TYPE;
+            case UPDATE_CHANNEL_FAVORITE:
+                return ContractClass.ChannelContract.CHANNEL_CONTENT_ITEM_TYPE;
+            case PROGRAM:
+                return ContractClass.ProgramsContract.PROGRAMS_CONTENT_TYPE;
+            case PROGRAM_ID:
+                return ContractClass.ProgramsContract.PROGRAMS_CONTENT_ITEM_TYPE;
 
             default:
                 throw new IllegalArgumentException("Unknown URI " + uri);
@@ -111,7 +154,7 @@ public class TvViewerContentProvider extends ContentProvider {
     @Nullable
     @Override
     public synchronized Uri insert(Uri uri, ContentValues initialValues) {
-        if (sUriMatcher.match(uri) != CHANNEL) {
+        if (sUriMatcher.match(uri) != CHANNEL && sUriMatcher.match(uri) != PROGRAM) {
             throw new IllegalArgumentException("Unknown URI " + uri);
         }
 
@@ -128,16 +171,28 @@ public class TvViewerContentProvider extends ContentProvider {
         switch (sUriMatcher.match(uri)) {
             case CHANNEL:
                 prepareChannelData(values);
-                rowId = db.insertWithOnConflict(ContractClass.ChannelContract.TABLE_NAME,
-                        ContractClass.ChannelContract.COLUMN_NAME_NAME,
+                rowId = db.insertWithOnConflict(CHANNEL_TABLE_NAME,
+                        ContractClass.ChannelContract.CHANNEL_COLUMN_NAME_NAME,
                         values, SQLiteDatabase.CONFLICT_IGNORE);
                 if (rowId == -1) {
-                    rowId = db.update(ContractClass.ChannelContract.TABLE_NAME,
+                    rowId = db.update(CHANNEL_TABLE_NAME,
                             initialValues,
                             "_id=?", new String[]{"" + values.get(_ID)});
                 }
                 if (rowId > 0) {
-                    rowUri = ContentUris.withAppendedId(ContractClass.ChannelContract.CONTENT_ID_URI_BASE, rowId);
+                    rowUri = ContentUris.withAppendedId(ContractClass.ChannelContract.CHANNEL_CONTENT_ID_URI_BASE, rowId);
+                    getContext().getContentResolver().notifyChange(rowUri, null);
+                }
+                break;
+
+            case PROGRAM:
+                prepareProgramData(values);
+
+                rowId = db.insertWithOnConflict(PROGRAMS_TABLE_NAME,
+                        PROGRAMS_COLUMN_NAME_TITLE,
+                        values, SQLiteDatabase.CONFLICT_IGNORE);
+                if (rowId > 0) {
+                    rowUri = ContentUris.withAppendedId(PROGRAMS_CONTENT_ID_URI_BASE, rowId);
                     getContext().getContentResolver().notifyChange(rowUri, null);
                 }
                 break;
@@ -152,15 +207,26 @@ public class TvViewerContentProvider extends ContentProvider {
         int count;
         switch (sUriMatcher.match(uri)) {
             case CHANNEL:
-                count = db.delete(ContractClass.ChannelContract.TABLE_NAME, where, whereArgs);
+                count = db.delete(CHANNEL_TABLE_NAME, where, whereArgs);
                 break;
             case CHANNEL_ID:
-                finalWhere = ContractClass.ChannelContract._ID + " = " + uri.getPathSegments().get(ContractClass.ChannelContract.CHANNEL_ID_PATH_POSITION);
+                finalWhere = ContractClass.ChannelContract._ID + " = " + uri.getPathSegments().get(CHANNEL_ID_PATH_POSITION);
                 if (where != null) {
                     finalWhere = finalWhere + " AND " + where;
                 }
-                count = db.delete(ContractClass.ChannelContract.TABLE_NAME, finalWhere, whereArgs);
+                count = db.delete(CHANNEL_TABLE_NAME, finalWhere, whereArgs);
                 break;
+            case PROGRAM:
+                count = db.delete(PROGRAMS_TABLE_NAME, where, whereArgs);
+                break;
+            case PROGRAM_ID:
+                finalWhere = _ID + " = " + uri.getPathSegments().get(PROGRAMS_ID_PATH_POSITION);
+                if (where != null) {
+                    finalWhere = finalWhere + " AND " + where;
+                }
+                count = db.delete(PROGRAMS_TABLE_NAME, finalWhere, whereArgs);
+                break;
+
             default:
                 throw new IllegalArgumentException("Unknown URI " + uri);
         }
@@ -176,16 +242,36 @@ public class TvViewerContentProvider extends ContentProvider {
         String id;
         switch (sUriMatcher.match(uri)) {
             case CHANNEL:
-                count = db.update(ContractClass.ChannelContract.TABLE_NAME, values, where, whereArgs);
+                count = db.update(CHANNEL_TABLE_NAME, values, where, whereArgs);
                 break;
             case CHANNEL_ID:
-                id = uri.getPathSegments().get(ContractClass.ChannelContract.CHANNEL_ID_PATH_POSITION);
+                id = uri.getPathSegments().get(CHANNEL_ID_PATH_POSITION);
                 finalWhere = ContractClass.ChannelContract._ID + " = " + id;
                 if (where != null) {
                     finalWhere = finalWhere + " AND " + where;
                 }
-                count = db.update(ContractClass.ChannelContract.TABLE_NAME, values, finalWhere, whereArgs);
+                count = db.update(CHANNEL_TABLE_NAME, values, finalWhere, whereArgs);
                 break;
+            case PROGRAM:
+                count = db.update(PROGRAMS_TABLE_NAME, values, where, whereArgs);
+                break;
+            case PROGRAM_ID:
+                id = uri.getPathSegments().get(PROGRAMS_ID_PATH_POSITION);
+                finalWhere = _ID + " = " + id;
+                if (where != null) {
+                    finalWhere = finalWhere + " AND " + where;
+                }
+                count = db.update(PROGRAMS_TABLE_NAME, values, finalWhere, whereArgs);
+                break;
+            case UPDATE_CHANNEL_FAVORITE:
+                id = uri.getPathSegments().get(PROGRAMS_ID_PATH_POSITION);
+                finalWhere = _ID + " = " + id;
+                if (where != null) {
+                    finalWhere = finalWhere + " AND " + where;
+                }
+                count = db.update(CHANNEL_TABLE_NAME, values, finalWhere, whereArgs);
+                break;
+
             default:
                 throw new IllegalArgumentException("Unknown URI " + uri);
         }
@@ -194,36 +280,62 @@ public class TvViewerContentProvider extends ContentProvider {
     }
 
     private void prepareChannelData(ContentValues values) {
-        if (!values.containsKey(ContractClass.ChannelContract.COLUMN_NAME_NAME)) {
-            values.put(ContractClass.ChannelContract.COLUMN_NAME_NAME, "");
+        if (!values.containsKey(ContractClass.ChannelContract.CHANNEL_COLUMN_NAME_NAME)) {
+            values.put(ContractClass.ChannelContract.CHANNEL_COLUMN_NAME_NAME, "");
         }
-        if (!values.containsKey(ContractClass.ChannelContract.COLUMN_NAME_URL)) {
-            values.put(ContractClass.ChannelContract.COLUMN_NAME_URL, "");
+        if (!values.containsKey(ContractClass.ChannelContract.CHANNEL_COLUMN_NAME_URL)) {
+            values.put(ContractClass.ChannelContract.CHANNEL_COLUMN_NAME_URL, "");
         }
-        if (!values.containsKey(ContractClass.ChannelContract.COLUMN_NAME_PICTURE)) {
-            values.put(ContractClass.ChannelContract.COLUMN_NAME_PICTURE, "");
+        if (!values.containsKey(ContractClass.ChannelContract.CHANNEL_COLUMN_NAME_PICTURE)) {
+            values.put(ContractClass.ChannelContract.CHANNEL_COLUMN_NAME_PICTURE, "");
         }
-        if (!values.containsKey(ContractClass.ChannelContract.COLUMN_NAME_CATEGORY_ID)) {
-            values.put(ContractClass.ChannelContract.COLUMN_NAME_CATEGORY_ID, 0);
+        if (!values.containsKey(ContractClass.ChannelContract.CHANNEL_COLUMN_NAME_CATEGORY_ID)) {
+            values.put(ContractClass.ChannelContract.CHANNEL_COLUMN_NAME_CATEGORY_ID, 0);
         }
-        if (!values.containsKey(ContractClass.ChannelContract.COLUMN_NAME_IS_FAVORITE)) {
-            values.put(ContractClass.ChannelContract.COLUMN_NAME_IS_FAVORITE, 0);
+        if (!values.containsKey(ContractClass.ChannelContract.CHANNEL_COLUMN_NAME_IS_FAVORITE)) {
+            values.put(ContractClass.ChannelContract.CHANNEL_COLUMN_NAME_IS_FAVORITE, 0);
+        }
+    }
+
+    private void prepareProgramData(ContentValues values) {
+        if (!values.containsKey(PROGRAMS_COLUMN_NAME_CHANNEL_ID)) {
+            values.put(PROGRAMS_COLUMN_NAME_CHANNEL_ID, 0);
+        }
+        if (!values.containsKey(PROGRAMS_COLUMN_NAME_DATE)) {
+            values.put(PROGRAMS_COLUMN_NAME_DATE, "");
+        }
+        if (!values.containsKey(PROGRAMS_COLUMN_NAME_TIME)) {
+            values.put(PROGRAMS_COLUMN_NAME_TIME, "");
+        }
+        if (!values.containsKey(PROGRAMS_COLUMN_NAME_TITLE)) {
+            values.put(PROGRAMS_COLUMN_NAME_TITLE, "");
+        }
+        if (!values.containsKey(PROGRAMS_COLUMN_NAME_DESCRIPTION)) {
+            values.put(PROGRAMS_COLUMN_NAME_DESCRIPTION, "");
         }
     }
 
 
     private static class DatabaseHelper extends SQLiteOpenHelper {
-        private static final String DATABASE_NAME = "TvViewerDB";
-        public static final String DATABASE_TABLE_CHANNEL = ContractClass.ChannelContract.TABLE_NAME;
 
-        private static final String DATABASE_CREATE_TABLE_STUDENTS =
-                "create table " + DATABASE_TABLE_CHANNEL + " ("
+
+        private static final String DATABASE_CREATE_TABLE_CHANNELS =
+                "create table " + CHANNEL_TABLE_NAME + " ("
                         + _ID + " integer primary key autoincrement, "
-                        + COLUMN_NAME_NAME + " string , "
-                        + COLUMN_NAME_URL + " string , "
-                        + COLUMN_NAME_PICTURE + " string , "
-                        + COLUMN_NAME_CATEGORY_ID + " integer , "
-                        + COLUMN_NAME_IS_FAVORITE + " integer );";
+                        + CHANNEL_COLUMN_NAME_NAME + " string , "
+                        + CHANNEL_COLUMN_NAME_URL + " string , "
+                        + CHANNEL_COLUMN_NAME_PICTURE + " string , "
+                        + CHANNEL_COLUMN_NAME_CATEGORY_ID + " integer , "
+                        + CHANNEL_COLUMN_NAME_IS_FAVORITE + " integer );";
+
+        private static final String DATABASE_CREATE_TABLE_PROGRAMS =
+                "create table " + PROGRAMS_TABLE_NAME + " ("
+                        + _ID + " integer primary key autoincrement, "
+                        + PROGRAMS_COLUMN_NAME_CHANNEL_ID + " integer , "
+                        + PROGRAMS_COLUMN_NAME_DATE + " string , "
+                        + PROGRAMS_COLUMN_NAME_TIME + " string , "
+                        + PROGRAMS_COLUMN_NAME_TITLE + " string , "
+                        + PROGRAMS_COLUMN_NAME_DESCRIPTION + " string );";
 
         DatabaseHelper(Context context) {
             super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -231,12 +343,14 @@ public class TvViewerContentProvider extends ContentProvider {
 
         @Override
         public void onCreate(SQLiteDatabase db) {
-            db.execSQL(DATABASE_CREATE_TABLE_STUDENTS);
+            db.execSQL(DATABASE_CREATE_TABLE_CHANNELS);
+            db.execSQL(DATABASE_CREATE_TABLE_PROGRAMS);
         }
 
         @Override
         public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-            db.execSQL("DROP TABLE IF EXISTS " + DATABASE_TABLE_CHANNEL);
+            db.execSQL("DROP TABLE IF EXISTS " + CHANNEL_TABLE_NAME);
+            db.execSQL("DROP TABLE IF EXISTS " + PROGRAMS_TABLE_NAME);
             onCreate(db);
         }
     }

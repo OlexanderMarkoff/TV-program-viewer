@@ -7,6 +7,8 @@ import android.support.annotation.Nullable;
 import android.support.design.widget.TabLayout;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
+import android.view.View;
+import android.widget.Button;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,21 +16,23 @@ import java.util.List;
 import example.m1.tv_program_viewer.R;
 import example.m1.tv_program_viewer.model.data.Channel;
 import example.m1.tv_program_viewer.presenter.ChannelsPresenter;
-import example.m1.tv_program_viewer.presenter.TvViewerPresenter;
-import example.m1.tv_program_viewer.view.TvViewerView;
+import example.m1.tv_program_viewer.presenter.TvViewerPresenterFavoritable;
+import example.m1.tv_program_viewer.view.TvViewerViewFavoritable;
 import example.m1.tv_program_viewer.view.adapters.TvViewerPagerAdapter;
 import example.m1.tv_program_viewer.view.fragments.TabFragment;
 
 import static android.provider.BaseColumns._ID;
 import static example.m1.tv_program_viewer.Constants.FRAGMENT_CHANNEL_ID_KEY;
 import static example.m1.tv_program_viewer.Constants.FRAGMENT_TITLE_KEY;
-import static example.m1.tv_program_viewer.model.db.ContractClass.ChannelContract.COLUMN_NAME_NAME;
+import static example.m1.tv_program_viewer.model.db.ContractClass.ChannelContract.CHANNEL_COLUMN_NAME_NAME;
 
 /**
  * Created by M1 on 09.11.2016.
  */
 
-public class MainActivity extends AppCompatActivity implements TvViewerView<Channel> {
+public class MainActivity extends AppCompatActivity implements TvViewerViewFavoritable<Channel>, View.OnClickListener {
+
+    private Button btnFavorite;
 
     private ViewPager pager;
 
@@ -36,24 +40,21 @@ public class MainActivity extends AppCompatActivity implements TvViewerView<Chan
 
     private TvViewerPagerAdapter pagerAdapter;
 
-    private TvViewerPresenter presenter;
+    private TvViewerPresenterFavoritable presenter;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        initUI();
-        setUI();
-        presenter = new ChannelsPresenter(this);
-        presenter.loadData();
-    }
 
-    private void initUI() {
+        btnFavorite = (Button)findViewById(R.id.add_remove_favorites);
+        btnFavorite.setOnClickListener(this);
+
         pager = (ViewPager) findViewById(R.id.pager);
         tabs = (TabLayout) findViewById(R.id.sliding_tabs);
-    }
 
-    private void setUI() {
+        presenter = new ChannelsPresenter(this);
+        presenter.loadData();
     }
 
 
@@ -65,7 +66,7 @@ public class MainActivity extends AppCompatActivity implements TvViewerView<Chan
         if (dataList.moveToFirst()) {
             while (!dataList.isAfterLast()) {
                 Bundle args = new Bundle();
-                args.putString(FRAGMENT_TITLE_KEY, dataList.getString(dataList.getColumnIndex(COLUMN_NAME_NAME)));
+                args.putString(FRAGMENT_TITLE_KEY, dataList.getString(dataList.getColumnIndex(CHANNEL_COLUMN_NAME_NAME)));
                 args.putString(FRAGMENT_CHANNEL_ID_KEY, dataList.getString(dataList.getColumnIndex(_ID)));
                 fragment = new TabFragment();
                 fragment.setArguments(args);
@@ -73,7 +74,6 @@ public class MainActivity extends AppCompatActivity implements TvViewerView<Chan
                 dataList.moveToNext();
             }
         }
-        dataList.close();
 
         tabs.setupWithViewPager(pager);
         if (pagerAdapter == null) {
@@ -83,12 +83,12 @@ public class MainActivity extends AppCompatActivity implements TvViewerView<Chan
         }
         pager.setOffscreenPageLimit(2);
         pager.setAdapter(pagerAdapter);
-
+        presenter.onTabChanged(tabs.getSelectedTabPosition());
         tabs.setOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
                 pager.setCurrentItem(tabs.getSelectedTabPosition(), true);
-
+                presenter.onTabChanged(tabs.getSelectedTabPosition());
             }
 
             @Override
@@ -99,6 +99,12 @@ public class MainActivity extends AppCompatActivity implements TvViewerView<Chan
             public void onTabReselected(TabLayout.Tab tab) {
             }
         });
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        presenter.onStop();
     }
 
     @Override
@@ -113,6 +119,15 @@ public class MainActivity extends AppCompatActivity implements TvViewerView<Chan
 
     @Override
     public void clearData() {
+    }
 
+    @Override
+    public void setFavoriteButtonText(String text) {
+        btnFavorite.setText(text);
+    }
+
+    @Override
+    public void onClick(View view) {
+        presenter.onFavoriteClicked(pager.getCurrentItem());
     }
 }

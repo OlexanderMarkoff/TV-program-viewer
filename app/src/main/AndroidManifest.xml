@@ -1,8 +1,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
           package="example.m1.tv_program_viewer">
 
-    <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
 
     <application
         android:name=".TvViewerApp"
@@ -14,6 +14,7 @@
 
         <activity
             android:name=".view.activities.MainActivity"
+            android:screenOrientation="portrait"
             android:windowSoftInputMode="adjustPan">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
@@ -21,9 +22,10 @@
             </intent-filter>
         </activity>
 
-        <provider android:name=".model.db.TvViewerContentProvider"
-                  android:authorities="example.m1.tv_program_viewer.model.db.ContractClass"
-                  android:exported="false"/>
+        <provider
+            android:name=".model.db.TvViewerContentProvider"
+            android:authorities="example.m1.tv_program_viewer.model.db.ContractClass"
+            android:exported="false"/>
 
     </application>
 

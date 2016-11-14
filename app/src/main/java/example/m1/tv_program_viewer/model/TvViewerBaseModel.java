@@ -6,11 +6,14 @@ import android.net.Uri;
 
 import java.util.List;
 
+import example.m1.tv_program_viewer.R;
 import example.m1.tv_program_viewer.TvViewerApp;
 import example.m1.tv_program_viewer.presenter.DataReadyListener;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+
+import static example.m1.tv_program_viewer.TvViewerApp.getAppContext;
 
 /**
  * Created by M1 on 13.11.2016.
@@ -20,38 +23,48 @@ public abstract class TvViewerBaseModel<T> implements Callback<List<T>>, TvViewe
 
     protected DataReadyListener dataReadyListener;
 
+    protected String[] tempParams;
+
     public TvViewerBaseModel(DataReadyListener dataReadyListener) {
         this.dataReadyListener = dataReadyListener;
     }
 
     @Override
     public void getData(String... params) {
+        Cursor cursor =
+                getAppContext()
+                        .getContentResolver()
+                        .query(getUri(params), null, null, null, null);
 
+        if (cursor.getCount() != 0) {
+            dataReadyListener.dataLoaded(cursor);
+        } else {
+            updateData(params);
+        }
+    }
+
+    @Override
+    public void updateData(String... params) {
         if (TvViewerApp.isNetworkAvailable()) {
             getFromNet(params);
         } else {
-
-            Cursor cursor = TvViewerApp
-                    .getAppContext()
-                    .getContentResolver()
-                    .query(getUri(), null, null, null, null);
-
-            dataReadyListener.dataLoaded(cursor);
+            dataReadyListener.loadingError(getAppContext().getString(R.string.title_network_error));
         }
     }
 
     protected void saveDataToDB(List<T> data) {
         for (T object : data) {
-            TvViewerApp.getAppContext().getContentResolver().insert(getUri(), objectToContentValues(object));
+            Uri uri = TvViewerApp.getAppContext().getContentResolver().insert(getUri(), objectToContentValues(object));
         }
 
-        Cursor cursor = TvViewerApp
-                .getAppContext()
-                .getContentResolver()
-                .query(getUri(), null, null, null, null);
+        Cursor cursor =
+                getAppContext()
+                        .getContentResolver()
+                        .query(getUri(tempParams), null, null, null, null);
 
         dataReadyListener.dataLoaded(cursor);
     }
+
 
     protected abstract void getFromNet(String... params);
 

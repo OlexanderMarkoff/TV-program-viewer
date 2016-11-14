@@ -6,4 +6,5 @@ package example.m1.tv_program_viewer.model;
 
 public interface TvViewerModel {
     void getData(String ... params);
+    void updateData(String ... params);
 }
