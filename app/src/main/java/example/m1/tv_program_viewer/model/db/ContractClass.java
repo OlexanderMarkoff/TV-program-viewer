@@ -24,8 +24,10 @@ public final class ContractClass {
         public static final String PATH_CHANNEL_ID = "/channel/";
         public static final String PATH_CHANNEL_IS_FAVORITE = "/channel_favorite/";
         public static final int CHANNEL_ID_PATH_POSITION = 1;
+        public static final int CHANNEL_FAVORITES_PATH_POSITION = 1;
         public static final Uri CHANNEL_CONTENT_URI = Uri.parse(CHANNEL_SCHEME + AUTHORITY + PATH_CHANNEL);
         public static final Uri CHANNEL_CONTENT_ID_URI_BASE = Uri.parse(CHANNEL_SCHEME + AUTHORITY + PATH_CHANNEL_ID);
+        public static final Uri CHANNEL_FAVORITE = Uri.parse(CHANNEL_SCHEME + AUTHORITY + PATH_CHANNEL_IS_FAVORITE);
         public static final String CHANNEL_CONTENT_TYPE = "vnd.android.cursor.dir/vnd.google.channel";
         public static final String CHANNEL_CONTENT_ITEM_TYPE = "vnd.android.cursor.item/vnd.google.channel";
         public static final String DEFAULT_CHANNELS_SORT_ORDER = "_id ASC";

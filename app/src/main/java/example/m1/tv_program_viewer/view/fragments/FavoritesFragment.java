@@ -14,24 +14,24 @@ import android.widget.CursorAdapter;
 import android.widget.ListView;
 
 import example.m1.tv_program_viewer.R;
-import example.m1.tv_program_viewer.model.data.Program;
+import example.m1.tv_program_viewer.model.data.Channel;
 import example.m1.tv_program_viewer.model.db.ContractClass;
-import example.m1.tv_program_viewer.presenter.ProgramsPresenter;
+import example.m1.tv_program_viewer.presenter.FavoritesPresenter;
 import example.m1.tv_program_viewer.presenter.TvViewerPresenter;
 import example.m1.tv_program_viewer.view.TvViewerView;
-import example.m1.tv_program_viewer.view.adapters.ProgramsCursorAdapter;
+import example.m1.tv_program_viewer.view.adapters.FavoritesCursorAdapter;
 
-import static example.m1.tv_program_viewer.Constants.FRAGMENT_CHANNEL_ID_KEY;
-import static example.m1.tv_program_viewer.Constants.NOW_DATE;
-import static example.m1.tv_program_viewer.model.db.ContractClass.ProgramsContract.PATH_PROGRAMS_ID;
-import static example.m1.tv_program_viewer.model.db.ContractClass.ProgramsContract.PROGRAMS_DEFAULT_PROJECTION;
-import static example.m1.tv_program_viewer.model.db.ContractClass.ProgramsContract.PROGRAMS_SCHEME;
+import static example.m1.tv_program_viewer.model.db.ContractClass.ChannelContract.CHANNEL_DEFAULT_PROJECTION;
+import static example.m1.tv_program_viewer.model.db.ContractClass.ChannelContract.CHANNEL_SCHEME;
+import static example.m1.tv_program_viewer.model.db.ContractClass.ChannelContract.PATH_CHANNEL_IS_FAVORITE;
 
 /**
- * Created by M1 on 09.11.2016.
+ * Created by M1 on 15.11.2016.
  */
 
-public class TabFragment extends Fragment implements TvViewerView<Program>, LoaderManager.LoaderCallbacks<Cursor> {
+public class FavoritesFragment extends Fragment implements TvViewerView<Channel>, LoaderManager.LoaderCallbacks<Cursor> {
+
+    public static final String TAG = TabsMainFragment.class.getName();
 
     private String channelId;
 
@@ -46,35 +46,17 @@ public class TabFragment extends Fragment implements TvViewerView<Program>, Load
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_list, container, false);
         listView = (ListView) rootView.findViewById(R.id.list_program);
-        presenter = new ProgramsPresenter(this);
-        channelId = getArguments().getString(FRAGMENT_CHANNEL_ID_KEY);
-        //first agr channelId
-        presenter.loadData(channelId);
+        presenter = new FavoritesPresenter(this);
+        presenter.loadData();
         return rootView;
     }
 
     @Override
-    public void showData(Cursor dataList) {
-        adapter = new ProgramsCursorAdapter(getActivity(), dataList, 0);
-        listView.setAdapter(adapter);
-    }
-
-    @Override
-    public void showError(String error) {
-
-    }
-
-    @Override
-    public void clearData() {
-
-    }
-
-    @Override
-    public Loader onCreateLoader(int i, Bundle bundle) {
+    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
         return new CursorLoader(
                 getActivity(),
-                Uri.parse(PROGRAMS_SCHEME + ContractClass.AUTHORITY + PATH_PROGRAMS_ID + channelId + "/" + NOW_DATE),
-                PROGRAMS_DEFAULT_PROJECTION,
+                Uri.parse(CHANNEL_SCHEME + ContractClass.AUTHORITY + PATH_CHANNEL_IS_FAVORITE + "1"),
+                CHANNEL_DEFAULT_PROJECTION,
                 null,
                 null,
                 null);
@@ -88,5 +70,22 @@ public class TabFragment extends Fragment implements TvViewerView<Program>, Load
     @Override
     public void onLoaderReset(Loader loader) {
         adapter.swapCursor(null);
+    }
+
+
+    @Override
+    public void showData(Cursor dataList) {
+        adapter = new FavoritesCursorAdapter(getActivity(), dataList, 0);
+        listView.setAdapter(adapter);
+    }
+
+    @Override
+    public void showError(String error) {
+
+    }
+
+    @Override
+    public void clearData() {
+
     }
 }

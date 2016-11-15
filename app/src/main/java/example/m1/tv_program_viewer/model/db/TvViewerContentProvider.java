@@ -21,6 +21,7 @@ import static example.m1.tv_program_viewer.model.db.ContractClass.ChannelContrac
 import static example.m1.tv_program_viewer.model.db.ContractClass.ChannelContract.CHANNEL_COLUMN_NAME_PICTURE;
 import static example.m1.tv_program_viewer.model.db.ContractClass.ChannelContract.CHANNEL_COLUMN_NAME_URL;
 import static example.m1.tv_program_viewer.model.db.ContractClass.ChannelContract.CHANNEL_DEFAULT_PROJECTION;
+import static example.m1.tv_program_viewer.model.db.ContractClass.ChannelContract.CHANNEL_FAVORITES_PATH_POSITION;
 import static example.m1.tv_program_viewer.model.db.ContractClass.ChannelContract.CHANNEL_ID_PATH_POSITION;
 import static example.m1.tv_program_viewer.model.db.ContractClass.ChannelContract.CHANNEL_TABLE_NAME;
 import static example.m1.tv_program_viewer.model.db.ContractClass.ChannelContract.DEFAULT_CHANNELS_SORT_ORDER;
@@ -47,7 +48,7 @@ public class TvViewerContentProvider extends ContentProvider {
 
     private static final int CHANNEL = 1;
     private static final int CHANNEL_ID = 2;
-    private static final int UPDATE_CHANNEL_FAVORITE = 3;
+    private static final int CHANNEL_FAVORITE = 3;
     private static final int PROGRAM = 4;
     private static final int PROGRAM_ID = 5;
 
@@ -57,7 +58,7 @@ public class TvViewerContentProvider extends ContentProvider {
         sUriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
         sUriMatcher.addURI(ContractClass.AUTHORITY, "channel", CHANNEL);
         sUriMatcher.addURI(ContractClass.AUTHORITY, "channel/*", CHANNEL_ID);
-        sUriMatcher.addURI(ContractClass.AUTHORITY, "channel_favorite/*", UPDATE_CHANNEL_FAVORITE);
+        sUriMatcher.addURI(ContractClass.AUTHORITY, "channel_favorite/*", CHANNEL_FAVORITE);
         sUriMatcher.addURI(ContractClass.AUTHORITY, "programs", PROGRAM);
         sUriMatcher.addURI(ContractClass.AUTHORITY, "programs/*/*", PROGRAM_ID);
     }
@@ -106,6 +107,13 @@ public class TvViewerContentProvider extends ContentProvider {
                 qb.appendWhere(ContractClass.ChannelContract._ID + "=" + uri.getPathSegments().get(CHANNEL_ID_PATH_POSITION));
                 orderBy = DEFAULT_CHANNELS_SORT_ORDER;
                 break;
+
+            case CHANNEL_FAVORITE:
+                qb.setTables(CHANNEL_TABLE_NAME);
+                qb.setProjectionMap(channelsProjectionMap);
+                qb.appendWhere(CHANNEL_COLUMN_NAME_IS_FAVORITE + "=" + uri.getPathSegments().get(CHANNEL_FAVORITES_PATH_POSITION));
+                orderBy = DEFAULT_CHANNELS_SORT_ORDER;
+                break;
             case PROGRAM:
                 qb.setTables(ContractClass.ProgramsContract.PROGRAMS_TABLE_NAME);
                 qb.setProjectionMap(programsProjectionMap);
@@ -139,7 +147,7 @@ public class TvViewerContentProvider extends ContentProvider {
                 return ContractClass.ChannelContract.CHANNEL_CONTENT_TYPE;
             case CHANNEL_ID:
                 return ContractClass.ChannelContract.CHANNEL_CONTENT_ITEM_TYPE;
-            case UPDATE_CHANNEL_FAVORITE:
+            case CHANNEL_FAVORITE:
                 return ContractClass.ChannelContract.CHANNEL_CONTENT_ITEM_TYPE;
             case PROGRAM:
                 return ContractClass.ProgramsContract.PROGRAMS_CONTENT_TYPE;
@@ -263,7 +271,7 @@ public class TvViewerContentProvider extends ContentProvider {
                 }
                 count = db.update(PROGRAMS_TABLE_NAME, values, finalWhere, whereArgs);
                 break;
-            case UPDATE_CHANNEL_FAVORITE:
+            case CHANNEL_FAVORITE:
                 id = uri.getPathSegments().get(PROGRAMS_ID_PATH_POSITION);
                 finalWhere = _ID + " = " + id;
                 if (where != null) {

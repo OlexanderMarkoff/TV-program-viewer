@@ -2,24 +2,23 @@ package example.m1.tv_program_viewer.presenter;
 
 import android.database.Cursor;
 
-import example.m1.tv_program_viewer.model.ProgramsModel;
-import example.m1.tv_program_viewer.model.TvViewerModel;
+import example.m1.tv_program_viewer.model.FavoritesModel;
 import example.m1.tv_program_viewer.view.TvViewerView;
 
 /**
- * Created by M1 on 13.11.2016.
+ * Created by M1 on 15.11.2016.
  */
 
-public class ProgramsPresenter extends BaseTvViewerPresenter<TvViewerView, TvViewerModel> {
+public class FavoritesPresenter extends BaseTvViewerPresenter implements TvViewerPresenter {
 
 
-    public ProgramsPresenter(TvViewerView view) {
+    public FavoritesPresenter(TvViewerView view) {
         super(view);
     }
 
     @Override
     protected void initModel() {
-        model = new ProgramsModel(this);
+        model = new FavoritesModel(this);
     }
 
     @Override
@@ -34,11 +33,10 @@ public class ProgramsPresenter extends BaseTvViewerPresenter<TvViewerView, TvVie
 
     @Override
     public void loadData(String... params) {
-        model.getData(params);
+        model.getData();
     }
 
     @Override
     public void onStop() {
-
     }
 }

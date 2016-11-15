@@ -3,6 +3,9 @@
 
     <group android:checkableBehavior="single">
         <item
+            android:id="@+id/nav_programs_list"
+            android:title="@string/nav_title_programs_list" />
+        <item
             android:id="@+id/nav_category"
             android:title="@string/nav_title_category" />
         <item
@@ -11,9 +14,6 @@
         <item
             android:id="@+id/nav_favorites"
             android:title="@string/nav_title_favorites" />
-        <item
-            android:id="@+id/nav_programs_list"
-            android:title="@string/nav_title_programs_list" />
     </group>
 
     <item android:title="@string/nav_title_date">
